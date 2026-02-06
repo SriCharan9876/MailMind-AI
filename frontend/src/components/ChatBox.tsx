@@ -32,11 +32,16 @@ export default function ChatBox() {
     try {
       const res = await api.post("/chat", {
         message: msg,
-        token: localStorage.getItem("token")
+        session_id: localStorage.getItem("session_id")
       })
       setMessages(m => [...m, { role: "bot", text: res.data.reply }])
-    } catch (error) {
-      setMessages(m => [...m, { role: "bot", text: "❌ Sorry, something went wrong. Please try again." }])
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        setMessages(m => [...m, { role: "bot", text: "⚠️ Session expired. Please login again." }])
+        localStorage.removeItem("session_id")
+      } else {
+        setMessages(m => [...m, { role: "bot", text: "⚠️ Something went wrong." }])
+      }
     } finally {
       setLoading(false)
     }
@@ -50,9 +55,9 @@ export default function ChatBox() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900/50 backdrop-blur-sm">
+    <div className="flex flex-col h-full bg-slate-900/50 backdrop-blur-sm min-h-0">
       {/* Messages Area */}
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-4 ${m.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
             {/* Avatar */}
@@ -62,8 +67,8 @@ export default function ChatBox() {
 
             {/* Bubble */}
             <div className={`max-w-[80%] rounded-2xl px-5 py-3 ${m.role === "user"
-                ? "bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-500/10"
-                : "bg-slate-800 text-slate-200 rounded-bl-none shadow-md"
+              ? "bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-500/10"
+              : "bg-slate-800 text-slate-200 rounded-bl-none shadow-md"
               }`}>
               <p className="leading-relaxed whitespace-pre-wrap">{m.text}</p>
             </div>
@@ -75,7 +80,7 @@ export default function ChatBox() {
             <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300">
               <Bot size={20} />
             </div>
-            <div className="bg-slate-800 rounded-2xl rounded-bl-none px-5 py-4 flex items-center gap-2">
+            <div className="bg-slate-800 rounded-2xl rounded-bl-none px-4 py-3 flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
               <span className="text-sm text-slate-400">Processing...</span>
             </div>

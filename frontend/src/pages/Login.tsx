@@ -4,11 +4,8 @@ export default function Login() {
   const login = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
     const redirect = window.location.origin + "/dashboard"
-    const scope =
-      "https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/userinfo.profile"
-
-    window.location.href =
-      `https://accounts.google.com/o/oauth2/v2/auth?response_type=token&client_id=${clientId}&redirect_uri=${redirect}&scope=${scope}`
+    const scope = "https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email"
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirect}&scope=${scope}&access_type=offline&prompt=consent`
   }
 
   return (
