@@ -91,7 +91,7 @@ def auth_google(data: dict):
             "code": code,
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
             "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
-            "redirect_uri": "http://localhost:5173/dashboard",
+            "redirect_uri": "https://mail-mind-ai-vert.vercel.app/dashboard",
             "grant_type": "authorization_code"
         }
     ).json()
