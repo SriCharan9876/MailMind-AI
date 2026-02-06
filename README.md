@@ -1,6 +1,6 @@
-# 🚀 InboxPilot AI – AI Powered Gmail Assistant
+# 🚀 MailMind AI – AI Powered Gmail Assistant
 
-InboxPilot AI is a mini AI-powered email assistant built as part of the **Constructure AI Technical Assignment**.  
+MailMind AI is a mini AI-powered email assistant built as part of the **Constructure AI Technical Assignment**.  
 It integrates Google authentication, Gmail automation, and AI to help users **read, summarize, reply to, and delete emails** through a conversational chatbot interface.
 
 ---
@@ -8,10 +8,10 @@ It integrates Google authentication, Gmail automation, and AI to help users **re
 ## 🌐 Live Demo
 
 **Frontend (Vercel):**  
-https://your-app-name.vercel.app
+[https://your-app-name.vercel.app](https://mail-mind-ai-vert.vercel.app)
 
 **Backend API:**  
-https://your-backend-url.onrender.com
+[https://your-backend-url.onrender.com](https://mailmind-ai-8pgp.onrender.com)
 
 ---
 
@@ -163,14 +163,6 @@ Prompts are structured to ensure context awareness and professional tone.
 - Uses access token from Google OAuth implicit flow  
 - Stores email context temporarily in memory (demo purpose)  
 - Designed for assignment evaluation, not production scale  
-
----
-
-## ⚠️ Known Limitations
-
-- No persistent database (MVP)  
-- No advanced NLP intent parsing  
-- No email grouping feature (bonus)  
 
 ---
 

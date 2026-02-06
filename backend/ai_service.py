@@ -17,9 +17,6 @@ def ask(prompt):
 
         data = r.json()
 
-        # Debug print to terminal
-        print("Groq RAW response:", data)
-
         if "choices" not in data:
             return f"AI Error: {data.get('error', data)}"
 
