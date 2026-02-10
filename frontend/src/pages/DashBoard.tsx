@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { api } from "../api"
-import { ChevronLeft, ChevronRight, Loader2, Sparkles, FileText, LayoutList, MessageSquare, Copy, Check, Eye, Trash2, X, Send, CornerUpLeft } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, FileText, LayoutList, MessageSquare, Eye, Trash2, X, Send, CornerUpLeft } from "lucide-react"
 import DOMPurify from 'dompurify'
 
 interface DraftEmail {
