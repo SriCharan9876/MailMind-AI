@@ -1,7 +1,7 @@
-export default function Dashboard() {
+export default function Settings() {
     return (
         <div className="flex-1 flex items-center justify-center text-slate-500">
-            Dashboard functionality coming soon
+            Settings coming soon
         </div>
     )
 }
