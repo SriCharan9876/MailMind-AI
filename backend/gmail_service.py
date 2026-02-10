@@ -35,24 +35,34 @@ def get_body(payload):
     return ""
 
 
-def get_emails(access_token, refresh_token):
+def get_emails(access_token, refresh_token, max_results=10, page_token=None):
     service = get_service(access_token, refresh_token)
-    res = service.users().messages().list(userId='me', maxResults=5).execute()
-    msgs = []
+    
+    # Call the Gmail API to fetch a list of messages
+    results = service.users().messages().list(
+        userId='me', 
+        maxResults=max_results, 
+        pageToken=page_token
+    ).execute()
+    
+    messages = results.get('messages', [])
+    next_page_token = results.get('nextPageToken')
 
-    for m in res.get('messages', []):
+    msgs = []
+    for m in messages:
         msg = service.users().messages().get(userId='me', id=m['id'], format='full').execute()
         payload = msg['payload']
         body = get_body(payload) or msg.get("snippet", "")
 
         msgs.append({
             "id": m['id'],
-            "subject": next((h['value'] for h in payload['headers'] if h['name']=="Subject"), ""),
-            "from": next((h['value'] for h in payload['headers'] if h['name']=="From"), ""),
-            "body": body
+            "subject": next((h['value'] for h in payload['headers'] if h['name']=="Subject"), "No Subject"),
+            "from": next((h['value'] for h in payload['headers'] if h['name']=="From"), "Unknown Sender"),
+            "body": body,
+            "snippet": msg.get("snippet", "")
         })
 
-    return msgs
+    return {"emails": msgs, "nextPageToken": next_page_token}
 
 
 def delete_email(access_token, refresh_token, msg_id):

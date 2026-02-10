@@ -36,3 +36,22 @@ def reply_email(t):
     if not t.strip():
         return "No email content provided for reply."
     return ask(f"Write a professional reply to this email:\n{t[:4000]}")
+
+
+def generate_replies(t, count=3):
+    if not t.strip():
+        return ["No content to reply to."] * count
+    
+    prompt = (
+        f"Generate {count} short, strictly distinct, professional reply options for this email. "
+        "Each option should be concise. Separate options strictly with '|||'. "
+        f"Do not number them. Just the reply text.\n\nEmail:\n{t[:4000]}"
+    )
+    
+    response = ask(prompt)
+    options = [opt.strip() for opt in response.split("|||")]
+    
+    # Ensure ensuring exactly 'count' items (pad or slice)
+    if len(options) < count:
+        options.extend(["Duplicate or empty option."] * (count - len(options)))
+    return options[:count]

@@ -5,12 +5,13 @@ import os  # process.env
 import requests  # axios/fetch in Node
 from fastapi import FastAPI, HTTPException  # FastAPI = Express app
 from fastapi.middleware.cors import CORSMiddleware  # cors() middleware
-from models import ChatRequest, Session as UserSession, OAuthToken  # Mongoose models
+from models import ChatRequest, SendEmailRequest, Session as UserSession, OAuthToken  # Mongoose models
 from gmail_service import get_emails, delete_email, send_email  # service layer
-from ai_service import summarize, reply_email  # business logic layer
+from ai_service import summarize, reply_email, generate_replies  # business logic layer
 from database import Base, engine, SessionLocal  # DB connection (Sequelize setup)
 from auth_service import save_google_user, get_user_from_session  # auth controller logic
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 Base.metadata.create_all(bind=engine)  # auto-create tables (sync DB)
 
@@ -75,10 +76,16 @@ def chat(data: ChatRequest):  # req.body automatically parsed & validated
         idx = int(msg.split()[-1]) - 1
         if idx >= len(email_cache):
             return {"reply": "Invalid email number."}
-        delete_email(token, email_cache[idx]["id"])
+        delete_email(access_token, email_cache[idx]["id"])
         return {"reply": "🗑 Email deleted successfully."}
 
     return {"reply": "Try: show emails, reply to email 1, send reply 1, delete email 1"}
+
+
+@app.get("/emails")
+def get_emails_route(session_id: str, limit: int = 10, page_token: str = None):
+    access_token, refresh_token = get_token_from_session(session_id)
+    return get_emails(access_token, refresh_token, limit, page_token)
 
 
 @app.post("/auth/google")  # login route
@@ -91,7 +98,7 @@ def auth_google(data: dict):
             "code": code,
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
             "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
-            "redirect_uri": "https://mail-mind-ai-vert.vercel.app/dashboard",
+            "redirect_uri": "http://localhost:5173/dashboard",
             "grant_type": "authorization_code"
         }
     ).json()
@@ -117,3 +124,56 @@ def get_current_user(data: dict):
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
     return {"name": user.name, "email": user.email}
+
+
+@app.post("/ai/summarize")
+def batch_summarize(data: dict):
+    # Expects {"texts": ["text1", "text2", ...]}
+    texts = data.get("texts", [])
+    if not texts:
+        return {"summaries": []}
+
+    # Parallelize summarization
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        summaries = list(executor.map(summarize, texts))
+
+    return {"summaries": summaries}
+
+
+@app.post("/ai/replies")
+def batch_replies(data: dict):
+    # Expects {"texts": ["text1", ...], "count": 3}
+    texts = data.get("texts", [])
+    count = data.get("count", 3)
+    
+    if not texts:
+        return {"replies": []}
+
+    def _gen(t):
+        return generate_replies(t, count)
+
+    with ThreadPoolExecutor(max_workers=3) as executor:  # Lower workers for heavier task
+        replies = list(executor.map(_gen, texts))
+
+    return {"replies": replies}
+
+
+@app.delete("/emails/{message_id}")
+def delete_message(message_id: str, session_id: str):
+    access_token, refresh_token = get_token_from_session(session_id)
+    try:
+        delete_email(access_token, refresh_token, message_id)
+        return {"status": "success", "message": "Email deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/emails/send")
+def send_email_route(data: SendEmailRequest):
+    access_token, refresh_token = get_token_from_session(data.session_id)
+    try:
+        send_email(access_token, refresh_token, data.to, data.subject, data.body)
+        return {"status": "success", "message": "Email sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

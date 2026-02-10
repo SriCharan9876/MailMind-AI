@@ -10,6 +10,12 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str
 
+class SendEmailRequest(BaseModel):
+    session_id: str
+    to: str
+    subject: str
+    body: str
+
 class User(Base):
     __tablename__ = "users"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
